@@ -1,19 +1,19 @@
 {
   "canisters": {
-    "token": {
-      "main": "src/token/main.mo",
+    "LokiToken": {
+      "main": "src/LokiToken/main.mo",
       "type": "motoko"
     },
-    "token_assets": {
+    "lokitoken_assets": {
       "dependencies": [
-        "token"
+        "LokiToken"
       ],
       "frontend": {
-        "entrypoint": "src/token_assets/src/index.html"
+        "entrypoint": "src/lokitoken_assets/src/index.html"
       },
       "source": [
-        "src/token_assets/assets",
-        "dist/token_assets/"
+        "src/lokitoken_assets/assets",
+        "dist/lokitoken_assets/"
       ],
       "type": "assets"
     }
@@ -24,7 +24,7 @@
       "packtool": ""
     }
   },
-  "dfx": "0.8.4",
+  "dfx": "0.9.3",
   "networks": {
     "local": {
       "bind": "127.0.0.1:8000",
