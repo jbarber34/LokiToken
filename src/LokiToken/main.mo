@@ -30,6 +30,39 @@ actor Token {
     // Get token symbol to display on frontend
     public query func getSymbol() : async Text {
         return symbol;
-    }
+    };
 
+    // Free 10,000 tokens //
+    // Create faucet function to payout tokens to the user
+    public shared(msg) func payOut() : async Text {
+        // Debug.print(debug_show(msg.caller));
+        // Check to see if user has already claimed free tokens
+        if(balances.get(msg.caller) == null){
+            let amount = 10000; // Set amount of free tokens
+            balances.put(msg.caller, amount);
+            return "Success";
+        } else{
+            return "Already Claimed"
+        }
+        
+    };
+
+    // Transfer Tokens //
+    public shared(msg) func transfer(to: Principal, amount: Nat) : async Text {
+        let fromBalance = await balanceOf(msg.caller);
+        // Check to ensure the user balance is great then the amount being transfered
+        if(fromBalance > amount){
+            let newFromBalance : Nat = fromBalance - amount; // Needs ': Nat' to let Motoko know the value cannot go below 0
+            // Update the transfer user to reflect new balance
+            balances.put(msg.caller, newFromBalance);
+            // Find balance of the receiving user and update their balance post-transfer
+            let toBalance = await balanceOf(to);
+            let newToBalance = toBalance + amount;
+            balances.put(to, newToBalance);
+
+            return "Success";
+        } else {
+            return "Insufficient Funds"
+        }
+    }
 };
