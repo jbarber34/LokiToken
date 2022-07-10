@@ -39,10 +39,11 @@ actor Token {
         // Check to see if user has already claimed free tokens
         if(balances.get(msg.caller) == null){
             let amount = 10000; // Set amount of free tokens
-            balances.put(msg.caller, amount);
-            return "Success";
+            // Transfer funds from the canister supply to the user claiming the tokens
+            let result = await transfer(msg.caller, amount);
+            return result;
         } else{
-            return "Already Claimed"
+            return "Already Claimed";
         }
         
     };
