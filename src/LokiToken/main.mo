@@ -2,18 +2,24 @@ import Principal "mo:base/Principal";
 import Debug "mo:base/Debug";
 import Env "Env";
 import HashMap "mo:base/HashMap";
+import Iter "mo:base/Iter";
 
 actor Token {
     // Create the Owner, Supply, and Symbol for the token
-    var owner : Principal = Principal.fromText(Env.PRINCIPAL_ID);
-    var totalSupply : Nat = 1000000000;
-    var symbol : Text = "LOKI"; 
+    let owner : Principal = Principal.fromText(Env.PRINCIPAL_ID);
+    let totalSupply : Nat = 1000000000;
+    let symbol : Text = "LOKI"; 
+
+    // Create a temp variable to keep data stable between deploy's
+    private stable var balanceEntries : [(Principal, Nat)] = [];
 
     // Create the Ledger data store - saves Id of a canister and the amount of tokens possessed
-    var balances = HashMap.HashMap<Principal, Nat>(1, Principal.equal, Principal.hash); 
-
-    // Add owner to ledger as first entry
-    balances.put(owner, totalSupply);
+    private var balances = HashMap.HashMap<Principal, Nat>(1, Principal.equal, Principal.hash);
+    // Put in check to ensure this happens the first time someone runs this code (before upgrade)
+    if (balances.size() < 1) {
+      // Add owner to ledger as first entry if this is the first run
+      balances.put(owner, totalSupply);
+    };
 
     // Create a check balance method
     public query func balanceOf(who: Principal) : async Nat {
@@ -65,5 +71,19 @@ actor Token {
         } else {
             return "Insufficient Funds"
         }
-    }
+    };
+
+  // Setup transition between balance entries and balance types 
+  // 'Balance entries' transfers to 'balance' before the upgrade and opposite after
+  system func preupgrade() {
+    balanceEntries := Iter.toArray(balances.entries());
+  };
+
+  system func postupgrade() {
+    balances := HashMap.fromIter<Principal, Nat>(balanceEntries.vals(), 1, Principal.equal, Principal.hash);
+    if (balances.size() < 1) {
+      // Add owner to ledger as first entry if this is the first run
+      balances.put(owner, totalSupply);
+    };
+  };
 };
