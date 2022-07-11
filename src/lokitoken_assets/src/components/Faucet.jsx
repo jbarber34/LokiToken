@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { LokiToken } from "../../../declarations/LokiToken";
+import { LokiToken, canisterId, createActor } from "../../../declarations/LokiToken";
+import { AuthClient } from "@dfinity/auth-client";
 
 function Faucet() {
 
@@ -8,8 +9,22 @@ function Faucet() {
 
   async function handleClick(event) {
     setDisable(true);
-    // Trigger payOut function from the front end - user trigger
-    const result = await LokiToken.payOut();
+    // Identify the user by their authClient
+    const authClient = await AuthClient.create();
+    const identity = await authClient.getIdentity();
+
+    // Create an actor with the users identity
+    const authenticatedCanister = createActor(canisterId, {
+      // Set options for canister
+      agentOptions: {
+        identity,
+      },
+    });
+
+    // Trigger payOut function for the authenticated user
+    // const result = await authenticatedCanister.payOut(); // Only use this if deployed on live IC Blockchain
+    const result = await LokiToken.payOut(); // For use locally
+
     setButtonText(result);
   }
 
